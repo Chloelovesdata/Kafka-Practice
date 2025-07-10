@@ -23,7 +23,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_MIN_INSYNC_REPLICAS: 1
 
-
   db_source:
     image: postgres:14.1-alpine
     restart: always
@@ -46,10 +45,30 @@ services:
     volumes:
       - db_dst:/var/lib/bf_kafka_proj2_dst/data
 
+  producer:  # add producer service
+    build: ./producer
+    depends_on:
+      - kafka
+      - db_source
+    environment:
+      - DB_HOST=db_source
+      - DB_PORT=5432
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+
+  consumer: # add consumer service
+    build: ./consumer
+    depends_on:
+      - kafka
+      - db_dst
+    environment:
+      - DB_HOST=db_dst
+      - DB_PORT=5432
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+
 volumes:
   db_source:
     driver: local
   db_dst:
     driver: local
-
-  
